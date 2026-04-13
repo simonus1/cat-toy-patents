@@ -3,16 +3,22 @@ layout: default
 title: 互动型猫玩具研发情报库
 ---
 
+<style>
+  /* 🛡️ 隐私保护盾：强制隐藏 GitHub 默认自带的底部版权信息和用户名 */
+  footer, .site-footer { display: none !important; }
+</style>
+
 <h1>🐾 互动型猫玩具研发情报库</h1>
-<p style="color: #666;">专注近10年内已授权的电动/物理交互类猫玩具专利，提炼核心机构与量产可行性评估。</p>
+<p style="color: #666;">专注近10年内已授权的猫玩具专利，提炼核心交互机构与外观形态评估。</p>
 
 <hr>
 
 <div style="margin: 20px 0; padding: 15px; background: #f6f8fa; border-radius: 8px; border: 1px solid #e1e4e8;">
   <strong style="margin-right: 15px; color: #24292e;">⚙️ 专利类型筛选：</strong>
   <button onclick="filterType('all')" style="cursor: pointer; padding: 5px 12px; margin-right: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff;">全部显示</button>
-  <button onclick="filterType('发明专利')" style="cursor: pointer; padding: 5px 12px; margin-right: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff;">仅看 发明专利</button>
-  <button onclick="filterType('实用新型')" style="cursor: pointer; padding: 5px 12px; border-radius: 4px; border: 1px solid #ccc; background: #fff;">仅看 实用新型</button>
+  <button onclick="filterType('发明专利')" style="cursor: pointer; padding: 5px 12px; margin-right: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff;">仅看 发明</button>
+  <button onclick="filterType('实用新型')" style="cursor: pointer; padding: 5px 12px; margin-right: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff;">仅看 实用新型</button>
+  <button onclick="filterType('外观设计')" style="cursor: pointer; padding: 5px 12px; border-radius: 4px; border: 1px solid #ccc; background: #fff;">仅看 外观设计</button>
 </div>
 
 <ul id="patent-list" style="list-style-type: none; padding-left: 0;">
@@ -44,4 +50,4 @@ function filterType(type) {
 </script>
 
 <br>
-<p style="color: #999; font-size: 0.9em; text-align: center; margin-top: 40px;">* 东莞市唯物工业设计有限公司 内部研发参考数据库 *</p>
+<p style="color: #999; font-size: 0.9em; text-align: center; margin-top: 40px;">* 产品创新研发内部参考数据库 *</p>
