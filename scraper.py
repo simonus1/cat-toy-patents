@@ -9,7 +9,8 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 
 def get_latest_cat_toy_patents():
     print("正在去 Google Patents 搜索最新猫玩具专利...")
-    url = "https://patents.google.com/xhr/query?url=q%3D(cat%2Btoy)%26type%3DPATENT%26sort%3Dnew&exp="
+    # 这个链接的意思是：在"动物玩具"分类下，搜索包含 cat 或 feline 或 kitty 的所有最新专利
+    url = "https://patents.google.com/xhr/query?url=q%3D(cat%2BOR%2Bfeline%2BOR%2Bkitty)%26ipc%3D(A01K15%2F025)%26type%3DPATENT%26sort%3Dnew&exp="
     headers = {'User-Agent': 'Mozilla/5.0'}
     response = requests.get(url, headers=headers)
     data = response.json()
