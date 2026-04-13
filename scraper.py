@@ -11,7 +11,8 @@ def get_latest_cat_toy_patents():
     print("正在去 Google Patents 搜索最新猫玩具专利 (包含申请中与已授权)...")
     
     # 🎯 终极精准检索：关键词必须包含 "cat"，且分类号严格限定为 "A01K15/025" (动物/宠物玩具)
-    url = "https://patents.google.com/xhr/query?url=q%3Dcat%26ipc%3DA01K15%2F025%26type%3DPATENT%26sort%3Dnew&exp="
+    # 🎯 绝对绑定检索：(cat 或 feline) 并且强制绑定 ipc:A01K15/025 (宠物玩具分类)
+    url = "https://patents.google.com/xhr/query?url=q%3D(cat%2BOR%2Bfeline)%2Bipc%3AA01K15%2F025%26type%3DPATENT%26sort%3Dnew&exp="
     
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
