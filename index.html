@@ -1,14 +1,47 @@
 ---
 layout: default
+title: 互动型猫玩具研发情报库
 ---
 
-<h1>最新分析档案</h1>
+<h1>🐾 互动型猫玩具研发情报库</h1>
+<p style="color: #666;">专注近10年内已授权的电动/物理交互类猫玩具专利，提炼核心机构与量产可行性评估。</p>
 
-<ul>
+<hr>
+
+<div style="margin: 20px 0; padding: 15px; background: #f6f8fa; border-radius: 8px; border: 1px solid #e1e4e8;">
+  <strong style="margin-right: 15px; color: #24292e;">⚙️ 专利类型筛选：</strong>
+  <button onclick="filterType('all')" style="cursor: pointer; padding: 5px 12px; margin-right: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff;">全部显示</button>
+  <button onclick="filterType('发明专利')" style="cursor: pointer; padding: 5px 12px; margin-right: 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff;">仅看 发明专利</button>
+  <button onclick="filterType('实用新型')" style="cursor: pointer; padding: 5px 12px; border-radius: 4px; border: 1px solid #ccc; background: #fff;">仅看 实用新型</button>
+</div>
+
+<ul id="patent-list" style="list-style-type: none; padding-left: 0;">
   {% for post in site.posts %}
-    <li style="margin-bottom: 10px;">
-      <span style="color: #666; font-family: monospace;">{{ post.date | date: "%Y-%m-%d" }}</span> &nbsp; | &nbsp; 
-      <a href="{{ post.url | relative_url }}" style="text-decoration: none; font-weight: bold;">{{ post.title }}</a>
+    <li class="patent-item" data-type="{{ post.category }}" style="margin-bottom: 20px; font-size: 1.1em; line-height: 1.5;">
+      <span style="color: #6a737d; font-family: monospace;">{{ post.date | date: "%Y-%m-%d" }}</span> 
+      &nbsp; | &nbsp; 
+      <span style="display:inline-block; padding: 2px 8px; font-size: 0.85em; background: #e1e4e8; color: #24292e; border-radius: 12px; margin-right: 8px;">
+        {{ post.country }}
+      </span>
+      <a href="{{ post.url | relative_url }}" style="text-decoration: none; font-weight: 600; color: #0366d6;">
+        {{ post.title }}
+      </a>
     </li>
   {% endfor %}
 </ul>
+
+<script>
+function filterType(type) {
+  const items = document.querySelectorAll('.patent-item');
+  items.forEach(item => {
+    if (type === 'all' || item.getAttribute('data-type') === type) {
+      item.style.display = 'list-item';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+</script>
+
+<br>
+<p style="color: #999; font-size: 0.9em; text-align: center; margin-top: 40px;">* 东莞市唯物工业设计有限公司 内部研发参考数据库 *</p>
