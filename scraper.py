@@ -8,10 +8,11 @@ genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 def get_latest_cat_toy_patents():
-    print("正在去 Google Patents 搜索最新猫玩具专利...")
+    print("正在去 Google Patents 搜索最新猫玩具专利 (包含申请中与已授权)...")
+    
+    # 🕵️ 【核心升级1】：去掉了 %26status%3DGRANT，恢复抓取所有状态的专利
     url = "https://patents.google.com/xhr/query?url=q%3D(cat%2BOR%2Bfeline%2BOR%2Bkitty)%26ipc%3D(A01K15%2F025)%26type%3DPATENT%26sort%3Dnew&exp="
     
-    # 🕵️ 【核心升级】：穿上极其逼真的人类浏览器伪装服
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/plain, */*',
@@ -24,44 +25,77 @@ def get_latest_cat_toy_patents():
     
     try:
         response = requests.get(url, headers=headers, timeout=15)
-        # 即使被拦截，也不要崩溃，而是温柔地报错
         if response.status_code != 200:
             print(f"⚠️ 访问被 Google 拦截，状态码: {response.status_code}")
             return []
         data = response.json()
     except Exception as e:
-        print(f"⚠️ 数据解析失败（可能遭遇了 Google 的防机器人验证）: {e}")
+        print(f"⚠️ 数据解析失败: {e}")
         return []
     
     patents = []
     cluster = data.get('results', {}).get('cluster', [])
     if not cluster:
-        print("📭 搜索结果为空，今天没有找到最新的猫玩具专利。")
+        print("📭 搜索结果为空。")
         return patents
         
-    results = cluster[0].get('result', [])[:3]
+    # 扩大抓取数量到 5 篇，以便获取更丰富的数据
+    results = cluster[0].get('result', [])[:5]
+    
     for res in results:
-        patent_id = res.get('patent', {}).get('publication_number', '未知编号')
-        title = res.get('patent', {}).get('title', '未知标题')
-        snippet = res.get('patent', {}).get('snippet', '无摘要')
-        patents.append({"id": patent_id, "title": title, "snippet": snippet})
+        p_data = res.get('patent', {})
+        pub_num = p_data.get('publication_number', '未知编号')
+        title = p_data.get('title', '未知标题')
+        snippet = p_data.get('snippet', '无摘要')
+        
+        # 🕵️ 【核心升级2】：精准提取国家、状态、人和时间
+        
+        # 1. 提取国家 (根据专利号前两位)
+        country_code = pub_num.split('-')[0] if '-' in pub_num else pub_num[:2]
+        country_map = {"CN": "🇨🇳 中国", "US": "🇺🇸 美国", "WO": "🌐 世界知识产权组织(PCT)", "EP": "🇪🇺 欧洲", "JP": "🇯🇵 日本", "KR": "🇰🇷 韩国", "DE": "🇩🇪 德国"}
+        country = country_map.get(country_code.upper(), f"🏳️ {country_code.upper()}")
+        
+        # 2. 判断状态 (根据专利号尾号，A通常是申请，B通常是授权)
+        kind_code = pub_num.split('-')[-1] if '-' in pub_num else pub_num[-2:]
+        if kind_code.startswith('B') or p_data.get('type') == 'GRANT':
+            status = "🔴 已授权/已注册 (Granted)"
+        else:
+            status = "🟢 申请公开中 (Application)"
+            
+        # 3. 提取所有人/发明人
+        assignees = p_data.get('assignee', [])
+        inventors = p_data.get('inventor', [])
+        people_list = assignees if assignees else inventors
+        people = ", ".join(people_list) if isinstance(people_list, list) and people_list else "独立发明人/未知"
+        
+        # 4. 提取发布日期
+        pub_date = p_data.get('publication_date', '最近公开')
+        
+        patents.append({
+            "id": pub_num,
+            "title": title,
+            "snippet": snippet,
+            "country": country,
+            "status": status,
+            "people": people,
+            "date": pub_date
+        })
         
     return patents
 
 def analyze_with_ai(patent):
     print(f"正在让 AI 分析专利：{patent['title']}...")
+    
+    # 🧠 【核心升级3】：全新的 AI 提示词，要求输出简介并规范格式
     prompt = f"""
-    你是一个专业的猫玩具产品开发专家。请阅读以下这篇专利的标题和摘要，提取核心信息，并严格按照下面的格式输出（不要加任何多余的废话）：
+    你是一个专业的宠物玩具产品经理。请阅读以下这篇猫玩具专利信息，并严格按照下面的格式输出中文摘要（绝对不要加任何多余的废话和过渡语）：
     
-    ### 发明背景
-    （根据摘要推测或总结出这篇专利想解决什么痛点，例如：猫咪容易失去兴趣、传统玩具互动性差等。一两句话即可。）
+    ### 📖 专利简介
+    （用通俗易懂的语言，2-3句话概括这个猫玩具长什么样、怎么玩、解决了什么痛点。）
     
-    ### 发明总览
-    （用一句话向非技术人员解释这个猫玩具是怎么工作的。）
-    
-    ### 核心创新
-    * （列出第一点核心创新点）
-    * （列出第二点核心创新点）
+    ### 💡 核心技术与创新点
+    * （列出第一点核心创新，即它在结构或原理上最特别的地方）
+    * （列出第二点核心创新）
     
     ----------------------
     专利标题：{patent['title']}
@@ -77,7 +111,7 @@ def main():
     patents = get_latest_cat_toy_patents()
     
     if not patents:
-        print("🎉 运行正常结束：目前没有新专利或遇到了风控限制，下次再试。")
+        print("🎉 运行正常结束：近期没有新专利。")
         return
 
     os.makedirs("_posts", exist_ok=True)
@@ -86,17 +120,33 @@ def main():
     for i, patent in enumerate(patents):
         ai_summary = analyze_with_ai(patent)
         
+        # 📝 【核心升级4】：将所有元数据完美排版到 Markdown 网页中
         filename = f"_posts/{today}-patent-{i+1}.md"
         with open(filename, "w", encoding="utf-8") as f:
             f.write(f"---\n")
             f.write(f"layout: default\n")
-            f.write(f"title: '专利快报：{patent['title']}'\n")
+            # 标题直接带上状态和国家，一目了然
+            f.write(f"title: '【{patent['status'].split(' ')[0]}】{patent['title']}'\n")
             f.write(f"date: {today}\n")
             f.write(f"---\n\n")
-            f.write(f"**专利号：** {patent['id']}\n\n")
+            
+            # 顶部信息卡片
+            f.write(f"> **🌍 申请国家：** {patent['country']}\n>\n")
+            f.write(f"> **🏷️ 专利状态：** {patent['status']}\n>\n")
+            f.write(f"> **🏢 所有人/申请人：** {patent['people']}\n>\n")
+            f.write(f"> **📅 公开日期：** {patent['date']}\n>\n")
+            f.write(f"> **🔢 专利编号：** `{patent['id']}`\n\n")
+            
+            # AI 生成的简介和创新点
             f.write(ai_summary)
-            f.write(f"\n\n[👉 点击去 Google Patents 查看原版图纸](https://patents.google.com/patent/{patent['id']})\n")
-            f.write(f"\n*Analyzed by Patent Digest System* | *{today}*")
+            
+            # 图片和原文按钮
+            f.write(f"\n\n---\n\n")
+            f.write(f"### 🔗 查阅原文件\n\n")
+            f.write(f"[🖼️ 点击直达图纸库 (查看产品外观/结构)](" + f"https://patents.google.com/patent/{patent['id']}/en#drawings" + f")\n\n")
+            f.write(f"[📄 查看 Google Patents 完整英文原件](" + f"https://patents.google.com/patent/{patent['id']}" + f")\n")
+            
+            f.write(f"\n<br><small>*Analyzed by Patent Digest System* | *Generated on {today}*</small>")
         
         print(f"成功生成网页文件：{filename}")
 
