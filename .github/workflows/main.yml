@@ -33,5 +33,11 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add _posts/ || true
-          git commit -m "Auto-update: 新增最新猫玩具专利摘要" || echo "今天没有新专利，无需更新"
-          git push
+          
+          # 🧠 【新增的智能判断】：检查文件是否有变化
+          if git diff-index --quiet HEAD; then
+            echo "🎉 完美运行：抓取到了数据，但和上次一模一样，无需重复发布。"
+          else
+            git commit -m "Auto-update: 新增最新猫玩具专利摘要"
+            git push
+          fi
