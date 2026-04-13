@@ -9,7 +9,7 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 
 def get_latest_cat_toy_patents():
     print("正在去 Google Patents 搜索最新猫玩具专利...")
-    # 这个链接的意思是：在"动物玩具"分类下，搜索包含 cat 或 feline 或 kitty 的所有最新专利
+    # 使用你刚才升级的高级检索词，并且精确限制了 A01K15/025 分类
     url = "https://patents.google.com/xhr/query?url=q%3D(cat%2BOR%2Bfeline%2BOR%2Bkitty)%26ipc%3D(A01K15%2F025)%26type%3DPATENT%26sort%3Dnew&exp="
     headers = {'User-Agent': 'Mozilla/5.0'}
     response = requests.get(url, headers=headers)
@@ -55,15 +55,17 @@ def main():
         print("今天没有找到新的猫玩具专利。")
         return
 
-    os.makedirs("content/posts", exist_ok=True)
+    # 这里改为了标准的 _posts 文件夹
+    os.makedirs("_posts", exist_ok=True)
     today = datetime.now().strftime("%Y-%m-%d")
 
     for i, patent in enumerate(patents):
         ai_summary = analyze_with_ai(patent)
         
-        filename = f"content/posts/{today}-patent-{i+1}.md"
+        filename = f"_posts/{today}-patent-{i+1}.md"
         with open(filename, "w", encoding="utf-8") as f:
             f.write(f"---\n")
+            f.write(f"layout: default\n") # 告诉网站使用默认排版
             f.write(f"title: '专利快报：{patent['title']}'\n")
             f.write(f"date: {today}\n")
             f.write(f"---\n\n")
