@@ -100,8 +100,10 @@ def main():
             f.write(f"> **🏢 申请人：** {patent['people']} | **📅 授权公开日：** {patent['date']}\n>\n")
             f.write(f"> **🔢 专利编号：** `{patent['id']}`\n\n")
             f.write(ai_summary)
-            f.write(f"\n\n---\n\n### 🔗 结构图纸直达\n\n")
-            f.write(f"[🖼️ 查看产品外观/结构图 (Google Patents)](https://patents.google.com/patent/{patent['id']}/en#drawings)\n")
+            f.write(f"\n\n---\n\n### 🔗 结构图纸直达（多线路备用）\n\n")
+            f.write(f"👉 **免翻墙通道 1：** [🇪🇺 欧洲专利局 (Espacenet) 查看图纸](https://worldwide.espacenet.com/patent/search?q={patent['id']})\n\n")
+            f.write(f"👉 **免翻墙通道 2：** [🇨🇳 SooPAT 专利搜索查看](http://www2.soopat.com/Home/Result?SearchWord={patent['id']})\n\n")
+            f.write(f"👉 **(备用) 需 VPN：** [🇺🇸 Google Patents 高清原件](https://patents.google.com/patent/{patent['id']}/en#drawings)\n")
 
 if __name__ == "__main__":
     main()
