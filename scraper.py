@@ -9,19 +9,43 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 
 def get_latest_cat_toy_patents():
     print("正在去 Google Patents 搜索最新猫玩具专利...")
-    # 使用你刚才升级的高级检索词，并且精确限制了 A01K15/025 分类
     url = "https://patents.google.com/xhr/query?url=q%3D(cat%2BOR%2Bfeline%2BOR%2Bkitty)%26ipc%3D(A01K15%2F025)%26type%3DPATENT%26sort%3Dnew&exp="
-    headers = {'User-Agent': 'Mozilla/5.0'}
-    response = requests.get(url, headers=headers)
-    data = response.json()
+    
+    # 🕵️ 【核心升级】：穿上极其逼真的人类浏览器伪装服
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'Referer': 'https://patents.google.com/',
+        'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'Sec-Ch-Ua-Platform': '"Windows"'
+    }
+    
+    try:
+        response = requests.get(url, headers=headers, timeout=15)
+        # 即使被拦截，也不要崩溃，而是温柔地报错
+        if response.status_code != 200:
+            print(f"⚠️ 访问被 Google 拦截，状态码: {response.status_code}")
+            return []
+        data = response.json()
+    except Exception as e:
+        print(f"⚠️ 数据解析失败（可能遭遇了 Google 的防机器人验证）: {e}")
+        return []
     
     patents = []
-    results = data.get('results', {}).get('cluster', [{}])[0].get('result', [])[:3]
+    cluster = data.get('results', {}).get('cluster', [])
+    if not cluster:
+        print("📭 搜索结果为空，今天没有找到最新的猫玩具专利。")
+        return patents
+        
+    results = cluster[0].get('result', [])[:3]
     for res in results:
-        patent_id = res['patent'].get('publication_number', '未知编号')
-        title = res['patent'].get('title', '未知标题')
-        snippet = res['patent'].get('snippet', '无摘要')
+        patent_id = res.get('patent', {}).get('publication_number', '未知编号')
+        title = res.get('patent', {}).get('title', '未知标题')
+        snippet = res.get('patent', {}).get('snippet', '无摘要')
         patents.append({"id": patent_id, "title": title, "snippet": snippet})
+        
     return patents
 
 def analyze_with_ai(patent):
@@ -51,11 +75,11 @@ def analyze_with_ai(patent):
 
 def main():
     patents = get_latest_cat_toy_patents()
+    
     if not patents:
-        print("今天没有找到新的猫玩具专利。")
+        print("🎉 运行正常结束：目前没有新专利或遇到了风控限制，下次再试。")
         return
 
-    # 这里改为了标准的 _posts 文件夹
     os.makedirs("_posts", exist_ok=True)
     today = datetime.now().strftime("%Y-%m-%d")
 
@@ -65,7 +89,7 @@ def main():
         filename = f"_posts/{today}-patent-{i+1}.md"
         with open(filename, "w", encoding="utf-8") as f:
             f.write(f"---\n")
-            f.write(f"layout: default\n") # 告诉网站使用默认排版
+            f.write(f"layout: default\n")
             f.write(f"title: '专利快报：{patent['title']}'\n")
             f.write(f"date: {today}\n")
             f.write(f"---\n\n")
