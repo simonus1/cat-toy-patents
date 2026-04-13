@@ -1,0 +1,14 @@
+---
+layout: default
+---
+
+<h1>最新分析档案</h1>
+
+<ul>
+  {% for post in site.posts %}
+    <li style="margin-bottom: 10px;">
+      <span style="color: #666; font-family: monospace;">{{ post.date | date: "%Y-%m-%d" }}</span> &nbsp; | &nbsp; 
+      <a href="{{ post.url | relative_url }}" style="text-decoration: none; font-weight: bold;">{{ post.title }}</a>
+    </li>
+  {% endfor %}
+</ul>
