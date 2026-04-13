@@ -5,14 +5,14 @@ from datetime import datetime
 
 API_KEY = os.environ.get("GEMINI_API_KEY")
 genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+# 🧠 【修复点 1】：加上 -latest 后缀，确保永远调用最新可用的 Flash 模型
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
 def get_latest_cat_toy_patents():
-    print("正在去 Google Patents 搜索最新猫玩具专利 (包含申请中与已授权)...")
+    print("正在去 Google Patents 搜索最相关的经典猫玩具专利...")
     
-    # 🎯 终极精准检索：关键词必须包含 "cat"，且分类号严格限定为 "A01K15/025" (动物/宠物玩具)
-    # 🎯 绝对绑定检索：(cat 或 feline) 并且强制绑定 ipc:A01K15/025 (宠物玩具分类)
-    url = "https://patents.google.com/xhr/query?url=q%3D(cat%2BOR%2Bfeline)%2Bipc%3AA01K15%2F025%26type%3DPATENT%26sort%3Dnew&exp="
+    # 🎯 【修复点 2】：去掉了 "sort=new" 限制。先抓取 5 篇最相关的纯正猫玩具专利来把网站建起来！
+    url = "https://patents.google.com/xhr/query?url=q%3D(cat%2BOR%2Bfeline)%2Bipc%3AA01K15%2F025%26type%3DPATENT&exp="
     
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -40,7 +40,6 @@ def get_latest_cat_toy_patents():
         print("📭 搜索结果为空。")
         return patents
         
-    # 抓取最新的 5 篇
     results = cluster[0].get('result', [])[:5]
     
     for res in results:
@@ -49,25 +48,21 @@ def get_latest_cat_toy_patents():
         title = p_data.get('title', '未知标题')
         snippet = p_data.get('snippet', '无摘要')
         
-        # 提取国家
         country_code = pub_num.split('-')[0] if '-' in pub_num else pub_num[:2]
         country_map = {"CN": "🇨🇳 中国", "US": "🇺🇸 美国", "WO": "🌐 世界知识产权组织(PCT)", "EP": "🇪🇺 欧洲", "JP": "🇯🇵 日本", "KR": "🇰🇷 韩国", "DE": "🇩🇪 德国"}
         country = country_map.get(country_code.upper(), f"🏳️ {country_code.upper()}")
         
-        # 判断状态
         kind_code = pub_num.split('-')[-1] if '-' in pub_num else pub_num[-2:]
         if kind_code.startswith('B') or p_data.get('type') == 'GRANT':
             status = "🔴 已授权/已注册 (Granted)"
         else:
             status = "🟢 申请公开中 (Application)"
             
-        # 提取所有人
         assignees = p_data.get('assignee', [])
         inventors = p_data.get('inventor', [])
         people_list = assignees if assignees else inventors
         people = ", ".join(people_list) if isinstance(people_list, list) and people_list else "独立发明人/未知"
         
-        # 提取发布日期
         pub_date = p_data.get('publication_date', '最近公开')
         
         patents.append({
@@ -109,7 +104,7 @@ def main():
     patents = get_latest_cat_toy_patents()
     
     if not patents:
-        print("🎉 运行正常结束：近期没有新专利。")
+        print("🎉 运行正常结束：没有抓取到专利。")
         return
 
     os.makedirs("_posts", exist_ok=True)
